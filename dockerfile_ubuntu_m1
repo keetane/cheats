@@ -23,33 +23,35 @@ WORKDIR /root
 RUN wget https://raw.githubusercontent.com/git/git/master/contrib/completion/git-prompt.sh
 RUN wget https://raw.githubusercontent.com/git/git/master/contrib/completion/git-completion.bash
 COPY ./bash_config /root
-
 RUN cat /root/bash_config >> /root/.bashrc
 
-#install miniconda3
-WORKDIR /opt
-# download miniconda package and install miniconda
-# archive -> https://docs.conda.io/en/latest/miniconda.html
-RUN wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
-RUN bash /opt/Miniconda3-latest-Linux-x86_64.sh -b -p /opt/miniconda3
-RUN rm -f Miniconda3-latest-Linux-x86_64.sh
-# set path
-ENV PATH /opt/miniconda3/bin:$PATH
-RUN conda config --add channels conda-forge
-RUN conda config --remove channels defaults
+# #install miniconda3
+# WORKDIR /opt
+# # download miniconda package and install miniconda
+# # archive -> https://docs.conda.io/en/latest/miniconda.html
+# RUN wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
+# RUN bash /opt/Miniconda3-latest-Linux-x86_64.sh -b -p /opt/miniconda3
+# RUN rm -f Miniconda3-latest-Linux-x86_64.sh
+# # set path
+# ENV PATH /opt/miniconda3/bin:$PATH
+# RUN conda config --add channels conda-forge
+# RUN conda config --remove channels defaults
 
-# create environment
-RUN conda create -n chem -y python=3.9 rdkit pubchempy scikit-learn jupyterlab
+# # create environment
+# RUN conda create -n chem -y python=3.9 rdkit pubchempy scikit-learn jupyterlab
 
 
-# OpenBabel3
-RUN apt-get update
-RUN apt install openbabel libopenbabel-dev -y
+# # OpenBabel3
+# RUN apt-get update
+# RUN apt install openbabel libopenbabel-dev -y
 
-WORKDIR /work
+# WORKDIR /work
 
 # sbddというdocker imageをbuild
 # docker build -t chem . 
+
+# dockerfile_ubuntu_m1というdockerfileからbuild
+# docker build -t ubuntu -f dockerfile_ubuntu_m1 . --no-cache
 
 # 最初からbuildするなら--no-cache
 # docker build -t chem . --no-cache
