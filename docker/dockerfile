@@ -3,7 +3,7 @@
 FROM --platform=linux/amd64 ubuntu:22.04
 
 # update
-RUN apt-get -y update && apt-get install -y libsm6 libxext6 libxrender-dev libglib2.0-0 sudo wget curl unzip vim 
+RUN apt-get -y update && apt-get install -y libsm6 libxext6 libxrender-dev libglib2.0-0 sudo wget curl unzip vim cmake
 RUN apt-get install -y build-essential default-jre git
 
 # prompt setting
@@ -31,10 +31,6 @@ RUN conda config --remove channels defaults
 # create environment
 RUN conda create -n chem -y python=3.9 rdkit pubchempy scikit-learn jupyterlab 
 
-# OpenBabel3
-RUN apt-get update
-RUN apt install openbabel libopenbabel-dev -y
-
 # p2rank installation
 RUN mkdir -p /usr/local/apps
 WORKDIR /usr/local/apps
@@ -49,6 +45,27 @@ RUN sed -i -e 's|$INSTALL_DIR|$HOME/.p2rank|g' ./p2rank_2.4/prank
 
 # set a path
 ENV PATH $PATH:/usr/local/apps/p2rank_2.4
+
+# openbabel
+RUN apt-get -y install build-essential libboost-all-dev libeigen3-dev libgoogle-glog-dev libprotobuf-dev protobuf-compiler libhdf5-dev libatlas-base-dev python3-dev librdkit-dev python3-numpy python3-pip python3-pytest libjsoncpp-dev cmake
+RUN git clone https://github.com/openbabel/openbabel.git
+RUN cd openbabel
+RUN mkdir build
+RUN cd build
+RUN apt-get -y install cmake
+RUN cmake -DWITH_MAEPARSER=OFF -DWITH_COORDGEN=OFF -DPYTHON_BINDINGS=ON -DRUN_SWIG=ON ..
+RUN make
+RUN make install
+
+# smina
+WORKDIR /usr/local/apps
+RUN apt install git libboost-all-dev libopenbabel-dev build-essential libeigen3-dev
+RUN git clone https://git.code.sf.net/p/smina/code smina-code
+RUN cd smina-code
+RUN mkdir build
+RUN cd build
+RUN cmake ..
+RUN make -j12
 
 
 WORKDIR /work
