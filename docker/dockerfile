@@ -21,7 +21,7 @@ WORKDIR /opt
 # download miniconda package and install miniconda
 # archive -> https://docs.conda.io/en/latest/miniconda.html
 RUN wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
-RUN bash /opt/Miniconda3-latest-Linux-x86_64.sh -b -p /opt/miniconda3
+RUN sudo bash Miniconda3-latest-Linux-x86_64.sh -b -p /opt/miniconda3
 RUN rm -f Miniconda3-latest-Linux-x86_64.sh
 # set path
 ENV PATH /opt/miniconda3/bin:$PATH
@@ -29,7 +29,7 @@ RUN conda config --add channels conda-forge
 RUN conda config --remove channels defaults
 
 # create environment
-RUN conda create -n chem -y python=3.9 rdkit pubchempy scikit-learn jupyterlab 
+RUN conda create -n chem -y python=3.9 rdkit pubchempy scikit-learn jupyterlab openbabel=3.1.1
 
 # p2rank installation
 RUN mkdir -p /usr/local/apps
@@ -53,19 +53,23 @@ RUN cd openbabel
 RUN mkdir build
 RUN cd build
 RUN apt-get -y install cmake
-RUN cmake -DWITH_MAEPARSER=OFF -DWITH_COORDGEN=OFF -DPYTHON_BINDINGS=ON -DRUN_SWIG=ON ..
-RUN make
-RUN make install
+# RUN cmake -DWITH_MAEPARSER=OFF -DWITH_COORDGEN=OFF -DPYTHON_BINDINGS=ON -DRUN_SWIG=ON ..
+# RUN make
+# RUN make install
+
+RUN conda init
+RUN conda activate chem
 
 # smina
 WORKDIR /usr/local/apps
-RUN apt install git libboost-all-dev libopenbabel-dev build-essential libeigen3-dev
+RUN apt-get update && apt-get upgrade
+RUN apt-get install git libboost-all-dev libopenbabel-dev build-essential libeigen3-dev -y
 RUN git clone https://git.code.sf.net/p/smina/code smina-code
 RUN cd smina-code
 RUN mkdir build
 RUN cd build
-RUN cmake ..
-RUN make -j12
+RUN cmake -D OPENBABEL_DIR=${HOME}/miniconda3/envs/chem ..
+RUN make
 
 
 WORKDIR /work
