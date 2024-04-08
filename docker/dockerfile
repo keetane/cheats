@@ -29,7 +29,18 @@ RUN conda config --add channels conda-forge
 RUN conda config --remove channels defaults
 
 # create environment
-RUN conda create -n chem -y python=3.9 rdkit pubchempy scikit-learn jupyterlab openbabel=3.1.1
+RUN conda create -n chem -y python=3.9 \
+rdkit \
+pubchempy \
+scikit-learn \
+jupyterlab \
+plotly \
+matplotlib \
+seaborn \
+openmm \
+openmm-setup
+
+RUN conda init
 
 # p2rank installation
 RUN mkdir -p /usr/local/apps
@@ -47,32 +58,25 @@ RUN sed -i -e 's|$INSTALL_DIR|$HOME/.p2rank|g' ./p2rank_2.4/prank
 ENV PATH $PATH:/usr/local/apps/p2rank_2.4
 
 # openbabel
-RUN apt-get -y install build-essential libboost-all-dev libeigen3-dev libgoogle-glog-dev libprotobuf-dev protobuf-compiler libhdf5-dev libatlas-base-dev python3-dev librdkit-dev python3-numpy python3-pip python3-pytest libjsoncpp-dev cmake
+WORKDIR /usr/local/apps
+RUN apt-get -y install build-essential libboost-all-dev libeigen3-dev libgoogle-glog-dev libprotobuf-dev protobuf-compiler libhdf5-dev libatlas-base-dev python3-dev librdkit-dev python3-numpy python3-pip python3-pytest libjsoncpp-dev cmake libopenbabel-dev
 RUN git clone https://github.com/openbabel/openbabel.git
-RUN cd openbabel
-RUN mkdir build
-RUN cd build
-RUN apt-get -y install cmake
-# RUN cmake -DWITH_MAEPARSER=OFF -DWITH_COORDGEN=OFF -DPYTHON_BINDINGS=ON -DRUN_SWIG=ON ..
-# RUN make
-# RUN make install
-
-RUN conda init
-RUN conda activate chem
+WORKDIR /usr/local/apps/openbabel/build
+RUN cmake -DWITH_MAEPARSER=OFF -DWITH_COORDGEN=OFF -DPYTHON_BINDINGS=ON -DRUN_SWIG=ON ..
+RUN make
+RUN make install
 
 # smina
 WORKDIR /usr/local/apps
-RUN apt-get update && apt-get upgrade
+RUN apt-get update && apt-get upgrade -y
 RUN apt-get install git libboost-all-dev libopenbabel-dev build-essential libeigen3-dev -y
 RUN git clone https://git.code.sf.net/p/smina/code smina-code
-RUN cd smina-code
-RUN mkdir build
-RUN cd build
+WORKDIR /usr/local/apps/smina-code/build
 RUN cmake -D OPENBABEL_DIR=${HOME}/miniconda3/envs/chem ..
 RUN make
+ENV PATH /usr/local/apps/smina-code/build:$PATH
 
-
-WORKDIR /work
+WORKDIR /home
 
 # sbddというdocker imageをbuild
 # docker build -t chem . 
