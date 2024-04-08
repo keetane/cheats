@@ -40,23 +40,47 @@ RUN rm bash_config
 # RUN conda config --remove channels defaults
 
 # # create environment
-# RUN conda create -n chem -y python=3.9 rdkit pubchempy scikit-learn jupyterlab
+# RUN conda create -n chem -y python=3.9 \
+# rdkit \
+# pubchempy \
+# scikit-learn \
+# jupyterlab \
+# plotly \
+# matplotlib \
+# seaborn 
+
+# RUN conda init
+
+# # openbabel
+# WORKDIR /usr/local/apps
+# RUN apt-get -y install build-essential libboost-all-dev libeigen3-dev libgoogle-glog-dev libprotobuf-dev protobuf-compiler libhdf5-dev libatlas-base-dev python3-dev librdkit-dev python3-numpy python3-pip python3-pytest libjsoncpp-dev cmake libopenbabel-dev
+# RUN git clone https://github.com/openbabel/openbabel.git
+# WORKDIR /usr/local/apps/openbabel/build
+# RUN cmake -DWITH_MAEPARSER=OFF -DWITH_COORDGEN=OFF -DPYTHON_BINDINGS=ON -DRUN_SWIG=ON ..
+# RUN make
+# RUN make install
+
+# # smina
+# WORKDIR /usr/local/apps
+# RUN apt-get update && apt-get upgrade -y
+# RUN apt-get install git libboost-all-dev libopenbabel-dev build-essential libeigen3-dev -y
+# RUN git clone https://git.code.sf.net/p/smina/code smina-code
+# WORKDIR /usr/local/apps/smina-code/build
+# RUN cmake -D OPENBABEL_DIR=${HOME}/miniconda3/envs/chem ..
+# RUN make
+# ENV PATH /usr/local/apps/smina-code/build:$PATH
+
+# WORKDIR /home
 
 
-# # OpenBabel3
-# RUN apt-get update
-# RUN apt install openbabel libopenbabel-dev -y
-
-# WORKDIR /work
-
-# sbddというdocker imageをbuild
+# chemというdocker imageをbuild
 # docker build -t chem . 
-
-# dockerfile_ubuntu_m1というdockerfileからbuild
-# docker build -t ubuntu -f dockerfile_ubuntu_m1 . --no-cache
 
 # 最初からbuildするなら--no-cache
 # docker build -t chem . --no-cache
+
+# dockerfile_ubuntu_m1というdockerfileからbuild
+# docker build -t ubuntu -f dockerfile_ubuntu_m1 . --no-cache
 
 # ubuntuというcontainerをsbddというimageからcreateしてbashでrun
 # docker run -it -v ~/Documents/Linux:/work -p 8888:8888 --name chem chem bash
