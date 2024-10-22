@@ -1,0 +1,11 @@
+.DS_Store
+.ipynb_checkpoints
+*.pdb
+*.cif
+*.csv
+*.sdf
+*.xml
+*.json
+*.smi
+__pycache__
+Dockerfile_ds.txt
