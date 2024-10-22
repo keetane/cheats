@@ -1,0 +1,96 @@
+# M1 MacでUbuntuコンテナを作る時の注意
+# https://qiita.com/silloi/items/739699337b9bf4883b3e
+FROM --platform=linux/amd64 ubuntu:22.04
+
+# update
+RUN apt-get -y update && apt-get install -y libsm6 libxext6 libxrender-dev libglib2.0-0 sudo wget curl unzip vim cmake
+RUN apt-get install -y build-essential default-jre git
+
+# prompt setting
+# https://zenn.dev/melos/articles/043fc03789603c
+WORKDIR /root
+RUN wget https://raw.githubusercontent.com/git/git/master/contrib/completion/git-prompt.sh
+RUN wget https://raw.githubusercontent.com/git/git/master/contrib/completion/git-completion.bash
+RUN wget https://raw.githubusercontent.com/keetane/cheats/main/bash_config
+RUN cat ./bash_config >> /root/.bashrc
+RUN rm bash_config
+
+
+#install miniconda3
+WORKDIR /opt
+# download miniconda package and install miniconda
+# archive -> https://docs.conda.io/en/latest/miniconda.html
+RUN wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
+RUN sudo bash Miniconda3-latest-Linux-x86_64.sh -b -p /opt/miniconda3
+RUN rm -f Miniconda3-latest-Linux-x86_64.sh
+# set path
+ENV PATH /opt/miniconda3/bin:$PATH
+RUN conda config --add channels conda-forge
+RUN conda config --remove channels defaults
+
+# create environment
+RUN conda create -n chem -y python=3.9 \
+rdkit \
+pubchempy \
+scikit-learn \
+jupyterlab \
+plotly \
+matplotlib \
+seaborn \
+openmm \
+openmm-setup
+
+RUN conda init
+
+# p2rank installation
+RUN mkdir -p /usr/local/apps
+WORKDIR /usr/local/apps
+RUN curl -L -O https://github.com/rdk/p2rank/releases/download/2.4/p2rank_2.4.tar.gz
+RUN tar -xvf ./p2rank_2.4.tar.gz
+
+# 不要なファイルの削除
+RUN rm -f ./p2rank_2.4.tar.gz
+
+# P2Rankのlogファイルの出力先を変更
+RUN sed -i -e 's|$INSTALL_DIR|$HOME/.p2rank|g' ./p2rank_2.4/prank
+
+# set a path
+ENV PATH $PATH:/usr/local/apps/p2rank_2.4
+
+# openbabel
+WORKDIR /usr/local/apps
+RUN apt-get -y install build-essential libboost-all-dev libeigen3-dev libgoogle-glog-dev libprotobuf-dev protobuf-compiler libhdf5-dev libatlas-base-dev python3-dev librdkit-dev python3-numpy python3-pip python3-pytest libjsoncpp-dev cmake libopenbabel-dev
+RUN git clone https://github.com/openbabel/openbabel.git
+WORKDIR /usr/local/apps/openbabel/build
+RUN cmake -DWITH_MAEPARSER=OFF -DWITH_COORDGEN=OFF -DPYTHON_BINDINGS=ON -DRUN_SWIG=ON ..
+RUN make
+RUN make install
+
+# smina
+WORKDIR /usr/local/apps
+RUN apt-get update && apt-get upgrade -y
+RUN apt-get install git libboost-all-dev libopenbabel-dev build-essential libeigen3-dev -y
+RUN git clone https://git.code.sf.net/p/smina/code smina-code
+WORKDIR /usr/local/apps/smina-code/build
+RUN cmake -D OPENBABEL_DIR=${HOME}/miniconda3/envs/chem ..
+RUN make
+ENV PATH /usr/local/apps/smina-code/build:$PATH
+
+WORKDIR /home
+
+# sbddというdocker imageをbuild
+# docker build -t chem . 
+
+# 最初からbuildするなら--no-cache
+# docker build -t chem . --no-cache
+
+# ubuntuというcontainerをsbddというimageからcreateしてbashでrun
+# docker run -it -v ~/Documents/Linux:/work -p 8888:8888 --name chem chem bash
+
+# dockerfileのキャッシュを確認
+# docker system df
+# dockerfileのキャッシュを削除
+# docker builder prune
+
+# jupyterlabの起動
+# jupyter lab --ip=0.0.0.0 --port=8888 --allow-root --no-browser --LabApp.token=''
