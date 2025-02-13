@@ -2,7 +2,7 @@
 
 ## 構築環境
 - code
-  > conda create -n code -c conda-forge python=3.12.6 -y pymol-open-source openmm openmm-setup scikit-learn lightgbm rdkit jupyterlab streamlit requests pubchempy py3dmol plotly BioPython pypdb biopandas ipykernel yfinance 
+  > conda create -n code -c conda-forge python=3.12.6 -y pymol-open-source openmm openmm-setup scikit-learn lightgbm rdkit jupyterlab streamlit requests pubchempy py3dmol plotly BioPython pypdb biopandas ipykernel yfinance xgboost
 
 - pymol
   > conda create -n pymol -c conda-forge python=3.10 pymol-open-source

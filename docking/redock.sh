@@ -32,36 +32,38 @@ mkdir -p "$pdb"
 cd "$pdb" || exit
 
 # pdbfixerコマンドの実行
-pdbfixer --pdbid="$pdb" --output="prep_$pdb_${today}.pdb" --ph=7
+pdbfixer --pdbid="$pdb" --output="prep_${pdb}_${today}.pdb" --ph=7
 
 # receptorとligandの準備
-grep ATOM prep_$pdb_${today}.pdb > rec_$pdb.pdb
-grep HETATM prep_$pdb_${today}.pdb > lig_$pdb.pdb
+grep ATOM prep_${pdb}_${today}.pdb > rec_${pdb}.pdb
+grep HETATM prep_${pdb}_${today}.pdb > lig_${pdb}.pdb
 
 # local docking
 smina \
---receptor rec_$pdb.pdb \
---ligand lig_$pdb.pdb \
---out redock_$pdb_${today}.sdf \
+--receptor rec_${pdb}.pdb \
+--ligand lig_${pdb}.pdb \
+--out redock_${pdb}_${today}.sdf \
 --num_modes 3 \
---autobox_ligand lig_$pdb.pdb \
+--autobox_ligand lig_${pdb}.pdb \
 --seed 0 \
---log log_local_dock_$pdb_${today}
+--log log_local_dock_${pdb}_${today}
 
 
 # global docking
 smina \
---receptor rec_$pdb.pdb \
---ligand lig_$pdb.pdb \
---out redock_global_$pdb_${today}.sdf \
+--receptor rec_${pdb}.pdb \
+--ligand lig_${pdb}.pdb \
+--out redock_global_${pdb}_${today}.sdf \
 --num_modes 9 \
---autobox_ligand rec_$pdb.pdb \
+--autobox_ligand rec_${pdb}.pdb \
 --seed 0 \
---log log_global_dock_$pdb_${today} \
+--log log_global_dock_${pdb}_${today} \
 # --exhaustiveness 64
 
 # .pmlファイルに追記
 echo "load prep_${pdb}_${today}.pdb" >> "${pdb}_${today}.pml"
-echo "load redock_$pdb_${today}.sdf" >> "${pdb}_${today}.pml"
-echo "load redock_global_$pdb_${today}.sdf" >> "${pdb}_${today}.pml"
+echo "load redock_${pdb}_${today}.sdf" >> "${pdb}_${today}.pml"
+echo "load redock_global_${pdb}_${today}.sdf" >> "${pdb}_${today}.pml"
 
+# PyMOLで開く
+pymol rec_${pdb}.pdb lig_${pdb}.pdb redock_${pdb}_${today}.sdf redock_global_${pdb}_${today}.sdf
